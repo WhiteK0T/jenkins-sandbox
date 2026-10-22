@@ -16,3 +16,4 @@ bats test/
 ```
 
 Нужны `shellcheck` и `bats` (Gentoo: `dev-util/shellcheck`, `dev-util/bats`; Debian/Ubuntu и Arch: пакеты `shellcheck`, `bats`).
+
