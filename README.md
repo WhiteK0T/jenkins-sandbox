@@ -6,7 +6,7 @@
 | :--- | :--- |
 | `bin/greet.sh` | `greet.sh [-u] ИМЯ` — приветствие; `-u` — заглавными |
 | `test/greet.bats` | тесты скрипта |
-| `Jenkinsfile` | пайплайн: shellcheck → bats → запуск |
+| `Jenkinsfile` | пайплайн: shellcheck → bats (отчёт JUnit) → архив `greet-N.tar.gz` → запуск |
 
 Локально:
 
