@@ -37,8 +37,9 @@ pipeline {
         }
         stage('Упаковка') {
             steps {
-                sh 'tar czf "greet-${BUILD_NUMBER}.tar.gz" bin/ README.md'
-                archiveArtifacts artifacts: 'greet-*.tar.gz', fingerprint: true
+                // workspace не очищается между сборками: без rm -rf в архив попали бы и старые greet-N
+                sh 'rm -rf dist && mkdir dist && tar czf "dist/greet-${BUILD_NUMBER}.tar.gz" bin/ README.md'
+                archiveArtifacts artifacts: 'dist/*.tar.gz', fingerprint: true
             }
         }
         stage('Запуск') {
