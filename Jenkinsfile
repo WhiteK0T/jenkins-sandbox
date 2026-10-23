@@ -52,59 +52,53 @@ pipeline {
                     VIRT   = '/srv/virt'
                     VM_ID  = "b${env.BUILD_NUMBER}-${currentBuild.startTimeInMillis}"
                 }
+                // lock не нужен: vm-up даёт каждой машине свой SSH-порт и VNC-дисплей,
+                // так что ячейки (и сборки разных веток) поднимают ВМ одновременно.
+                // VM_ID в окружении говорит vm-ssh, в какую именно машину идти.
                 stages {
-                    stage('Прогон') {
-                        options {
-                            // SSH-порт ВМ фиксированный — одна машина каждого типа за раз.
-                            // lock именно здесь: в options самой матрицы значение оси ещё не известно (было бы vm-null)
-                            lock(resource: "vm-${env.PLATFORM}")
+                    stage('ВМ: запуск') {
+                        when { expression { env.PLATFORM != 'gentoo' } }
+                        steps {
+                            sh '"$VIRT/bin/vm-up" "$PLATFORM" "$VM_ID"'
+                            sh '"$VIRT/bin/vm-ssh" "$PLATFORM" --scp bin vm:bin'
+                            sh '"$VIRT/bin/vm-ssh" "$PLATFORM" --scp test vm:test'
                         }
-                        stages {
-                            stage('ВМ: запуск') {
-                                when { expression { env.PLATFORM != 'gentoo' } }
-                                steps {
-                                    sh '"$VIRT/bin/vm-up" "$PLATFORM" "$VM_ID"'
-                                    sh '"$VIRT/bin/vm-ssh" "$PLATFORM" --scp bin vm:bin'
-                                    sh '"$VIRT/bin/vm-ssh" "$PLATFORM" --scp test vm:test'
-                                }
+                    }
+                    stage('Окружение') {
+                        steps {
+                            script { onPlatform(env.PLATFORM, 'uname -sr; grep PRETTY_NAME /etc/os-release; bats --version') }
+                        }
+                    }
+                    stage('shellcheck') {
+                        steps {
+                            script { onPlatform(env.PLATFORM, 'shellcheck bin/*.sh') }
+                        }
+                    }
+                    stage('Тесты') {
+                        steps {
+                            // код выхода bats сборку не роняет — упавшие тесты разберёт junit (→ UNSTABLE)
+                            script {
+                                onPlatform(env.PLATFORM, 'rm -rf reports && mkdir reports && ' +
+                                    'bats --print-output-on-failure --report-formatter junit --output reports test/', true)
                             }
-                            stage('Окружение') {
-                                steps {
-                                    script { onPlatform(env.PLATFORM, 'uname -sr; grep PRETTY_NAME /etc/os-release; bats --version') }
-                                }
-                            }
-                            stage('shellcheck') {
-                                steps {
-                                    script { onPlatform(env.PLATFORM, 'shellcheck bin/*.sh') }
-                                }
-                            }
-                            stage('Тесты') {
-                                steps {
-                                    // код выхода bats сборку не роняет — упавшие тесты разберёт junit (→ UNSTABLE)
-                                    script {
-                                        onPlatform(env.PLATFORM, 'rm -rf reports && mkdir reports && ' +
-                                            'bats --print-output-on-failure --report-formatter junit --output reports test/', true)
-                                    }
-                                    script {
-                                        if (env.PLATFORM != 'gentoo') {
-                                            sh 'rm -rf reports && mkdir reports && "$VIRT/bin/vm-ssh" "$PLATFORM" --scp vm:reports/report.xml reports/'
-                                        }
-                                    }
-                                }
-                                post {
-                                    // отчёта нет (bats не запустился) — junit упадёт, и сборка станет FAILURE
-                                    always { junit 'reports/*.xml' }
+                            script {
+                                if (env.PLATFORM != 'gentoo') {
+                                    sh 'rm -rf reports && mkdir reports && "$VIRT/bin/vm-ssh" "$PLATFORM" --scp vm:reports/report.xml reports/'
                                 }
                             }
                         }
                         post {
-                            // ВМ гасим при любом исходе — иначе она займёт порт и память до перезагрузки хоста
-                            always {
-                                script {
-                                    if (env.PLATFORM != 'gentoo') {
-                                        sh '"$VIRT/bin/vm-down" "$PLATFORM" "$VM_ID"'
-                                    }
-                                }
+                            // отчёта нет (bats не запустился) — junit упадёт, и сборка станет FAILURE
+                            always { junit 'reports/*.xml' }
+                        }
+                    }
+                }
+                post {
+                    // ВМ гасим при любом исходе — иначе она займёт порт и память до перезагрузки хоста
+                    always {
+                        script {
+                            if (env.PLATFORM != 'gentoo') {
+                                sh '"$VIRT/bin/vm-down" "$PLATFORM" "$VM_ID"'
                             }
                         }
                     }
