@@ -24,7 +24,7 @@ name=$1
 
 msg="Привет, $name!"
 if [ "$upper" -eq 1 ]; then
-    # awk, а не tr: tr в glibc не меняет регистр кириллицы в UTF-8
-    msg=$(printf '%s\n' "$msg" | awk '{ print toupper($0) }')
+    # gawk/mawk, а не tr: tr в glibc не меняет регистр кириллицы в UTF-8
+    msg=$(printf '%s\n' "$msg" | sed 's/.*/\U&/')
 fi
 printf '%s\n' "$msg"
