@@ -42,6 +42,9 @@ pipeline {
                     }
                 }
                 when {
+                    // без beforeAgent ячейка сначала ждёт свободного исполнителя и только потом узнаёт,
+                    // что она не нужна; с ним пропущенная ячейка агента вообще не занимает
+                    beforeAgent true
                     // первая сборка идёт без параметров (params.ONLY == null) — тогда все системы
                     expression { params.ONLY == null || params.ONLY == 'все' || params.ONLY == env.PLATFORM }
                 }
