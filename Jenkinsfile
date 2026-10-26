@@ -26,12 +26,7 @@ pipeline {
         timestamps()
         timeout(time: 30, unit: 'MINUTES')
         buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '5'))
-    }
-    triggers {
-        // вебхуки до Jenkins на localhost не дойдут — опрашиваем Git раз в ~5 минут;
-        // триггер регистрируется после первой сборки
-        pollSCM('H/5 * * * *')
-    }
+    }        
     stages {
         stage('Системы') {
             matrix {
