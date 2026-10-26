@@ -19,7 +19,7 @@ def onPlatform(String platform, String cmd, boolean returnStatus = false) {
 pipeline {
     agent none
     parameters {
-        choice(name: 'ONLY', cchoices: ['все', 'gentoo', 'debian-13', 'ubuntu-24.04', 'ubuntu-26.04'],
+        choice(name: 'ONLY', choices: ['все', 'gentoo', 'debian-13', 'ubuntu-24.04', 'ubuntu-26.04'],
                description: 'Прогнать на всех системах или только на одной')
     }
     options {
