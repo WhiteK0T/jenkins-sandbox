@@ -6,8 +6,7 @@
 | :--- | :--- |
 | `bin/greet.sh` | `greet.sh [-u] ИМЯ` — приветствие; `-u` — заглавными |
 | `test/greet.bats` | тесты скрипта |
-| `Jenkinsfile` | пайплайн: shellcheck → bats (отчёт JUnit) → архив `greet-N.tar.gz` → запуск |
-| `Jenkinsfile.vm` | те же проверки внутри одноразовой ВМ Debian 13 (нужен агент с меткой `kvm` и `/srv/virt` на его хосте) |
+| `Jenkinsfile` | матрица: shellcheck и bats (отчёт JUnit) параллельно на Gentoo (агент) и Debian 13 (одноразовая ВМ из `/srv/virt`, нужен агент с метками `linux` и `kvm`) → архив `greet-N.tar.gz` |
 
 Локально:
 
