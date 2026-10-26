@@ -20,7 +20,6 @@ pipeline {
     agent none
     parameters {
         choice(name: 'ONLY', cchoices: ['все', 'gentoo', 'debian-13', 'ubuntu-24.04', 'ubuntu-26.04'],
-               values 'gentoo', 'debian-13', 'ubuntu-24.04', 'ubuntu-26.04'
                description: 'Прогнать на всех системах или только на одной')
     }
     options {
@@ -34,7 +33,7 @@ pipeline {
                 axes {
                     axis {
                         name 'PLATFORM'
-                        values 'gentoo', 'debian-13'
+                        values 'gentoo', 'debian-13', 'ubuntu-24.04', 'ubuntu-26.04'
                     }
                 }
                 when {
